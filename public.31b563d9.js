@@ -18483,11 +18483,16 @@ const Form = ()=>{
         if (!formdata.date) errordata.date = "enter date";
         return errordata;
     };
+    const [showpay, setshowpay] = (0, _react.useState)(false);
     const [errors, seterrors] = (0, _react.useState)({});
+    const [noofhourssep, setnoofhourssep] = (0, _react.useState)(0);
+    const [totalamountsep, settotalamountsep] = (0, _react.useState)(0);
     const [sucess, setsuccess] = (0, _react.useState)(false);
     const [arraydata, setarraydata] = (0, _react.useState)([]);
     const [loading, setloading] = (0, _react.useState)(false);
     const [paychange1, setpaychange1] = (0, _react.useState)(10);
+    const [name27, setname27] = (0, _react.useState)("");
+    const [originalData, setoriginalData] = (0, _react.useState)([]);
     const handleSubmit = (event)=>{
         event.preventDefault();
         const error = formsubmissions1();
@@ -18501,20 +18506,19 @@ const Form = ()=>{
             setTimeout(()=>{
                 setsuccess(false);
             }, 2000);
-            const exits = arraydata.some((item)=>item.date === formdata.date && item.pt === formdata.pt);
-            if (exits) {
-                const newarray1 = arraydata.map((item)=>{
-                    if (item.date === formdata.date && item.pt === formdata.pt) return {
-                        ...item,
-                        hours: parseInt(item.hours) + parseInt(formdata.hours)
-                    };
-                    return item;
-                });
-                setarraydata(newarray1);
-            } else setarraydata([
+            const exits = arraydata.some((item)=>item.date === formdata.date && item.pt.toLowerCase() === formdata.pt.toLowerCase());
+            if (exits) var newarray1 = arraydata.map((item)=>{
+                if (item.date === formdata.date && item.pt.toLowerCase() === formdata.pt.toLowerCase()) return {
+                    ...item,
+                    hours: parseInt(item.hours) + parseInt(formdata.hours)
+                };
+                return item;
+            });
+            else var newarray1 = [
                 ...arraydata,
                 formdata
-            ]);
+            ];
+            setarraydata(newarray1);
             setsuccess(true);
             setformdata({
                 pt: "",
@@ -18525,13 +18529,17 @@ const Form = ()=>{
     };
     const [noofhours, setnoofhours] = (0, _react.useState)(0);
     const [totalamount, settotalamount] = (0, _react.useState)(0);
+    const [ptname, setptname] = (0, _react.useState)("");
     (0, _react.useEffect)(()=>{
         const saveddata = JSON.parse(localStorage.getItem('formdata') || '[]');
         setarraydata(saveddata);
         setloading(true);
     }, []);
     (0, _react.useEffect)(()=>{
-        if (loading) localStorage.setItem('formdata', JSON.stringify(arraydata));
+        if (loading) {
+            localStorage.setItem('formdata', JSON.stringify(arraydata));
+            setoriginalData(arraydata);
+        }
         const total = arraydata.reduce((a, b)=>a + parseFloat(b.hours || 0), 0);
         setnoofhours(total);
         const totalamount = arraydata.reduce((a, b)=>a + parseInt(b.hours * paychange || 0), 0);
@@ -18545,6 +18553,28 @@ const Form = ()=>{
         const newdata = arraydata.filter((item, idx)=>idx !== index);
         setarraydata(newdata);
     };
+    const searchvalue = (e)=>{
+        const number27 = e.target.value;
+        setptname(number27);
+        if (number27 === "") {
+            setoriginalData(arraydata);
+            const noofhoursarray = arraydata.reduce((a, b)=>a + parseFloat(b.hours || 0), 0);
+            const totalamountarray = arraydata.reduce((a, b)=>a + parseInt(b.hours * paychange || 0), 0);
+            setnoofhours(noofhoursarray);
+            settotalamount(totalamountarray);
+            setname27("");
+            setshowpay(false);
+        } else {
+            const filterdata = originalData.filter((item)=>item.pt.toLowerCase().includes(ptname.toLowerCase()));
+            if (filterdata.length > 0) setname27(filterdata[0].pt);
+            const noofhours1 = filterdata.reduce((a, b)=>a + parseFloat(b.hours || 0), 0);
+            const totalamount1 = filterdata.reduce((a, b)=>a + parseInt(b.hours * paychange || 0), 0);
+            setnoofhourssep(noofhours1);
+            settotalamountsep(totalamount1);
+            setoriginalData(filterdata);
+            setshowpay(true);
+        }
+    };
     return /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _jsxDevRuntime.Fragment), {
         children: [
             arraydata.length > 0 && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _jsxDevRuntime.Fragment), {
@@ -18557,8 +18587,8 @@ const Form = ()=>{
                         ]
                     }, void 0, true, {
                         fileName: "src/Form.js",
-                        lineNumber: 93,
-                        columnNumber: 7
+                        lineNumber: 125,
+                        columnNumber: 5
                     }, undefined),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
                         className: "text-center fw-bold fs-5 mt-3",
@@ -18569,7 +18599,7 @@ const Form = ()=>{
                         ]
                     }, void 0, true, {
                         fileName: "src/Form.js",
-                        lineNumber: 94,
+                        lineNumber: 126,
                         columnNumber: 13
                     }, undefined),
                     /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18577,30 +18607,64 @@ const Form = ()=>{
                         children: [
                             "Change Pay: ",
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
-                                children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
-                                    type: "number",
-                                    className: "border border-dark border-2 rounded-2",
-                                    value: paychange,
-                                    onChange: (e)=>setpaychange(e.target.value),
-                                    style: {
-                                        width: "45px"
-                                    }
-                                }, void 0, false, {
-                                    fileName: "src/Form.js",
-                                    lineNumber: 96,
-                                    columnNumber: 33
-                                }, undefined)
-                            }, void 0, false, {
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
+                                        type: "number",
+                                        className: "border border-dark border-2 rounded-2",
+                                        value: paychange,
+                                        onChange: (e)=>setpaychange(e.target.value),
+                                        style: {
+                                            width: "45px"
+                                        }
+                                    }, void 0, false, {
+                                        fileName: "src/Form.js",
+                                        lineNumber: 130,
+                                        columnNumber: 33
+                                    }, undefined),
+                                    " "
+                                ]
+                            }, void 0, true, {
                                 fileName: "src/Form.js",
-                                lineNumber: 96,
+                                lineNumber: 130,
                                 columnNumber: 27
-                            }, undefined),
-                            " "
+                            }, undefined)
                         ]
                     }, void 0, true, {
                         fileName: "src/Form.js",
-                        lineNumber: 95,
+                        lineNumber: 129,
                         columnNumber: 13
+                    }, undefined),
+                    /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                        className: "text-center fw-bold fs-5",
+                        children: [
+                            "PT filter: ",
+                            /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("span", {
+                                children: [
+                                    /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
+                                        type: "text",
+                                        className: "border border-dark border-2 rounded-2 mt-3",
+                                        value: ptname,
+                                        onChange: searchvalue,
+                                        style: {
+                                            width: "100px"
+                                        }
+                                    }, void 0, false, {
+                                        fileName: "src/Form.js",
+                                        lineNumber: 133,
+                                        columnNumber: 32
+                                    }, undefined),
+                                    " "
+                                ]
+                            }, void 0, true, {
+                                fileName: "src/Form.js",
+                                lineNumber: 133,
+                                columnNumber: 26
+                            }, undefined)
+                        ]
+                    }, void 0, true, {
+                        fileName: "src/Form.js",
+                        lineNumber: 132,
+                        columnNumber: 15
                     }, undefined),
                     " "
                 ]
@@ -18616,7 +18680,7 @@ const Form = ()=>{
                                     children: "PT:"
                                 }, void 0, false, {
                                     fileName: "src/Form.js",
-                                    lineNumber: 103,
+                                    lineNumber: 139,
                                     columnNumber: 17
                                 }, undefined),
                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
@@ -18628,13 +18692,13 @@ const Form = ()=>{
                                     onChange: onchange
                                 }, void 0, false, {
                                     fileName: "src/Form.js",
-                                    lineNumber: 104,
+                                    lineNumber: 140,
                                     columnNumber: 12
                                 }, undefined)
                             ]
                         }, void 0, true, {
                             fileName: "src/Form.js",
-                            lineNumber: 102,
+                            lineNumber: 138,
                             columnNumber: 13
                         }, undefined),
                         errors.pt && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18642,7 +18706,7 @@ const Form = ()=>{
                             children: errors.pt
                         }, void 0, false, {
                             fileName: "src/Form.js",
-                            lineNumber: 107,
+                            lineNumber: 143,
                             columnNumber: 27
                         }, undefined),
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18652,7 +18716,7 @@ const Form = ()=>{
                                     children: "Hours:"
                                 }, void 0, false, {
                                     fileName: "src/Form.js",
-                                    lineNumber: 109,
+                                    lineNumber: 145,
                                     columnNumber: 17
                                 }, undefined),
                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
@@ -18664,13 +18728,13 @@ const Form = ()=>{
                                     onChange: onchange
                                 }, void 0, false, {
                                     fileName: "src/Form.js",
-                                    lineNumber: 110,
+                                    lineNumber: 146,
                                     columnNumber: 12
                                 }, undefined)
                             ]
                         }, void 0, true, {
                             fileName: "src/Form.js",
-                            lineNumber: 108,
+                            lineNumber: 144,
                             columnNumber: 13
                         }, undefined),
                         errors.hours && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18678,7 +18742,7 @@ const Form = ()=>{
                             children: errors.hours
                         }, void 0, false, {
                             fileName: "src/Form.js",
-                            lineNumber: 113,
+                            lineNumber: 149,
                             columnNumber: 42
                         }, undefined),
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18688,7 +18752,7 @@ const Form = ()=>{
                                     children: "Date:"
                                 }, void 0, false, {
                                     fileName: "src/Form.js",
-                                    lineNumber: 116,
+                                    lineNumber: 152,
                                     columnNumber: 17
                                 }, undefined),
                                 /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("input", {
@@ -18700,13 +18764,13 @@ const Form = ()=>{
                                     value: formdata.date
                                 }, void 0, false, {
                                     fileName: "src/Form.js",
-                                    lineNumber: 117,
+                                    lineNumber: 153,
                                     columnNumber: 12
                                 }, undefined)
                             ]
                         }, void 0, true, {
                             fileName: "src/Form.js",
-                            lineNumber: 115,
+                            lineNumber: 151,
                             columnNumber: 14
                         }, undefined),
                         errors.date && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18714,7 +18778,7 @@ const Form = ()=>{
                             children: errors.date
                         }, void 0, false, {
                             fileName: "src/Form.js",
-                            lineNumber: 120,
+                            lineNumber: 156,
                             columnNumber: 41
                         }, undefined),
                         /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18728,24 +18792,24 @@ const Form = ()=>{
                                     children: "Submit"
                                 }, void 0, false, {
                                     fileName: "src/Form.js",
-                                    lineNumber: 122,
+                                    lineNumber: 158,
                                     columnNumber: 48
                                 }, undefined)
                             ]
                         }, void 0, true, {
                             fileName: "src/Form.js",
-                            lineNumber: 122,
+                            lineNumber: 158,
                             columnNumber: 13
                         }, undefined)
                     ]
                 }, void 0, true, {
                     fileName: "src/Form.js",
-                    lineNumber: 101,
+                    lineNumber: 137,
                     columnNumber: 9
                 }, undefined)
             }, void 0, false, {
                 fileName: "src/Form.js",
-                lineNumber: 100,
+                lineNumber: 136,
                 columnNumber: 5
             }, undefined),
             sucess && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18753,12 +18817,56 @@ const Form = ()=>{
                 children: "Data Added"
             }, void 0, false, {
                 fileName: "src/Form.js",
-                lineNumber: 130,
+                lineNumber: 166,
                 columnNumber: 32
             }, undefined),
+            showpay && /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)((0, _jsxDevRuntime.Fragment), {
+                children: /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                    className: "d-flex justify-content-center",
+                    children: [
+                        " ",
+                        /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                            className: "fw-bold fs-5 ms-5  text-danger",
+                            children: name27
+                        }, void 0, false, {
+                            fileName: "src/Form.js",
+                            lineNumber: 168,
+                            columnNumber: 67
+                        }, undefined),
+                        " ",
+                        /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                            className: " ms-5 fw-bold fs-5 ",
+                            children: [
+                                "Total Hours: ",
+                                noofhourssep
+                            ]
+                        }, void 0, true, {
+                            fileName: "src/Form.js",
+                            lineNumber: 168,
+                            columnNumber: 126
+                        }, undefined),
+                        /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("p", {
+                            className: " fw-bold fs-5 ms-5",
+                            children: [
+                                "Total Amount: ",
+                                totalamountsep,
+                                "$"
+                            ]
+                        }, void 0, true, {
+                            fileName: "src/Form.js",
+                            lineNumber: 169,
+                            columnNumber: 13
+                        }, undefined)
+                    ]
+                }, void 0, true, {
+                    fileName: "src/Form.js",
+                    lineNumber: 168,
+                    columnNumber: 19
+                }, undefined)
+            }, void 0, false),
             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
-                className: "box d-flex flex-column  mt-5 ",
-                children: arraydata.map((item, index)=>/*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
+                className: "box d-flex flex-column  mt-0 ",
+                children: originalData.map((item, index)=>/*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
                         className: " border border-1 row",
                         children: [
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18766,7 +18874,7 @@ const Form = ()=>{
                                 children: item.pt
                             }, void 0, false, {
                                 fileName: "src/Form.js",
-                                lineNumber: 134,
+                                lineNumber: 176,
                                 columnNumber: 29
                             }, undefined),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18774,7 +18882,7 @@ const Form = ()=>{
                                 children: item.hours
                             }, void 0, false, {
                                 fileName: "src/Form.js",
-                                lineNumber: 135,
+                                lineNumber: 177,
                                 columnNumber: 29
                             }, undefined),
                             /*#__PURE__*/ (0, _jsxDevRuntime.jsxDEV)("div", {
@@ -18787,30 +18895,30 @@ const Form = ()=>{
                                         children: "\u274C"
                                     }, void 0, false, {
                                         fileName: "src/Form.js",
-                                        lineNumber: 136,
+                                        lineNumber: 178,
                                         columnNumber: 73
                                     }, undefined)
                                 ]
                             }, void 0, true, {
                                 fileName: "src/Form.js",
-                                lineNumber: 136,
+                                lineNumber: 178,
                                 columnNumber: 29
                             }, undefined)
                         ]
                     }, index, true, {
                         fileName: "src/Form.js",
-                        lineNumber: 133,
+                        lineNumber: 175,
                         columnNumber: 29
                     }, undefined))
             }, void 0, false, {
                 fileName: "src/Form.js",
-                lineNumber: 131,
+                lineNumber: 171,
                 columnNumber: 21
             }, undefined)
         ]
     }, void 0, true);
 };
-_s(Form, "vQSHG/gAasXV6wi1rB/wam1qyZc=");
+_s(Form, "ROfPg4DtvflzilkhsoxOh5FBBkY=");
 _c = Form;
 exports.default = Form;
 var _c;
