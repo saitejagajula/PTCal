@@ -25,11 +25,19 @@ import './Form.css';
         return errordata;
 
     }
+            const [showpay,setshowpay]=useState(false);
+
     const [errors,seterrors]=useState({});
+    const [noofhourssep,setnoofhourssep]=useState(0);
+    const [totalamountsep,settotalamountsep]=useState(0);
+
     const [sucess,setsuccess]=useState(false);
     const [arraydata,setarraydata]=useState([])
     const [loading,setloading]=useState(false);
     const [paychange1,setpaychange1]=useState(10);
+    const [name27,setname27]=useState("");
+        const [originalData,setoriginalData]=useState([]);
+
      const handleSubmit=(event)=>{
         event.preventDefault();
         const error=formsubmissions1();
@@ -41,25 +49,19 @@ import './Form.css';
                 setsuccess(false);
                 
             }, 2000)
-         const exits = arraydata.some(item => item.date === formdata.date && item.pt === formdata.pt);
+         const exits = arraydata.some(item => item.date === formdata.date && item.pt.toLowerCase() === formdata.pt.toLowerCase());
         if(exits){
-            const newarray1=arraydata.map((item)=>{
-                if(item.date===formdata.date && item.pt===formdata.pt){
+            var newarray1=arraydata.map((item)=>{
+                if(item.date===formdata.date && item.pt.toLowerCase()===formdata.pt.toLowerCase()){
                     return {...item,hours:parseInt(item.hours)+parseInt(formdata.hours)};
                 }
-                return item;
-
-            }
-
-            )
-            setarraydata(newarray1);}
-
-        else{
-            
-            setarraydata([...arraydata,formdata]);
-            
-
+                return item;})
         }
+
+        else{ 
+            var newarray1=[...arraydata,formdata];
+        }
+        setarraydata(newarray1);
         setsuccess(true);
             setformdata({pt:"",hours:"",date:""});
   
@@ -67,35 +69,69 @@ import './Form.css';
      }
      const [noofhours,setnoofhours]=useState(0);
      const [totalamount,settotalamount]=useState(0);
+         const [ptname,setptname]=useState("");
+
      useEffect(()=>{
        const saveddata=JSON.parse(localStorage.getItem('formdata')||'[]') 
          setarraydata(saveddata);
-         setloading(true);
+    setloading(true);
      },[]);
      useEffect(() => {
         if(loading){
-        localStorage.setItem('formdata', JSON.stringify(arraydata));}
+        localStorage.setItem('formdata', JSON.stringify(arraydata));
+        setoriginalData(arraydata);
+        }
     const total = arraydata.reduce((a, b) => a + parseFloat(b.hours || 0), 0);
     setnoofhours(total);
     const totalamount= arraydata.reduce((a, b) => a + parseInt(b.hours*paychange||0), 0);
     settotalamount(totalamount);
+
+
   }, [arraydata, loading, paychange]);
+
+     
   const deleterow=(index)=>{
     const newdata=arraydata.filter((item,idx)=>idx!==index);
     setarraydata(newdata);
-    
+ }
+ const searchvalue=(e)=>{const number27=e.target.value;
+              setptname( number27);
+              if(number27===""){
+                    setoriginalData(arraydata);
+                const noofhoursarray=arraydata.reduce((a, b) => a + parseFloat(b.hours || 0), 0);
+                const totalamountarray= arraydata.reduce((a, b) => a + parseInt(b.hours*paychange||0), 0);
+                setnoofhours(noofhoursarray);
+                settotalamount(totalamountarray);
+                setname27("");
+                setshowpay(false);
+              }
+              else{
 
-  }
-   
-    
+                  const filterdata=originalData.filter((item)=>item.pt.toLowerCase().includes(ptname.toLowerCase()));
+                if (filterdata.length > 0) {
+  setname27(filterdata[0].pt);
+}
+                const noofhours1=filterdata.reduce((a, b) => a + parseFloat(b.hours || 0), 0);
+                const totalamount1= filterdata.reduce((a, b) => a + parseInt(b.hours*paychange||0), 0);
+                setnoofhourssep(noofhours1);
+                settotalamountsep(totalamount1);
+        setoriginalData(filterdata);
+        setshowpay(true);
+    }
+              }
+ 
   return (<>
    {arraydata.length>0 && (<>
-      <p className="text-center fw-bold fs-5 mt-3">Total Hours: {noofhours}</p>
+    <p className="text-center fw-bold fs-5 mt-3">Total Hours: {noofhours}</p>
             <p className="text-center fw-bold fs-5 mt-3">Total Amount: {totalamount}$</p>
-            <div className='text-center fw-bold fs-5'>
-              Change Pay: <span><input type="number" className='border border-dark border-2 rounded-2' value={paychange} onChange={(e)=>setpaychange(e.target.value)} style={{width:"45px"}} />
 
- </span> </div> </>)}
+     
+            <div className='text-center fw-bold fs-5'>
+              Change Pay: <span><input type="number" className='border border-dark border-2 rounded-2' value={paychange} onChange={(e)=>setpaychange(e.target.value)} style={{width:"45px"}} /> </span>
+              </div>
+              <div className='text-center fw-bold fs-5'>
+              PT filter: <span><input type="text" className='border border-dark border-2 rounded-2 mt-3' value={ptname} onChange={searchvalue} style={{width:"100px"}} /> </span>
+              </div> </>)}
 
     <div className='d-flex justify-content-center'>
         <form>
@@ -128,8 +164,14 @@ import './Form.css';
 
     </div>
                     {sucess && <div className='text-center text-success mt-3'>Data Added</div>}
-                    <div className='box d-flex flex-column  mt-5 '>
-                        {arraydata.map((item,index)=>(
+                  {showpay && <>
+                  <div className='d-flex justify-content-center'> <p className='fw-bold fs-5 ms-5  text-danger'>{name27}</p> <p className=" ms-5 fw-bold fs-5 ">Total Hours: {noofhourssep}</p>
+            <p className=" fw-bold fs-5 ms-5">Total Amount: {totalamountsep}$</p>
+                     </div></>}
+                    <div className='box d-flex flex-column  mt-0 '>
+
+                        {originalData.map((item,index)=>(
+
                             <div className=' border border-1 row'key={index}> 
                             <div className='col-4  text-center'>{item.pt}</div>
                             <div className='col-3  col-md-4 text-center'>{item.hours}</div>
